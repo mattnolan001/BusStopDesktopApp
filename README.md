@@ -104,3 +104,9 @@ The app is plain SwiftUI/AppKit with no dependencies. `build-app.sh` compiles `S
 | `Models.swift` | JSON decoding for departures and stops |
 | `DeparturesView.swift` | The departures list (shared by menu and window) |
 | `StopPickerView.swift` | Change Stop search |
+
+## License
+
+Copyright © 2026 Matt Nolan
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See [LICENSE](LICENSE) for the full text.
