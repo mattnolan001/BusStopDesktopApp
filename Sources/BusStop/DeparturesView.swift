@@ -43,15 +43,15 @@ struct DeparturesView: View {
     }
 
     private var footer: some View {
-        HStack {
-            if let updated = store.lastUpdated {
-                Text("Updated \(updated.formatted(date: .omitted, time: .shortened))")
+        VStack(alignment: .leading, spacing: 2) {
+            Text("Last updated: \(store.lastUpdated?.formatted(date: .omitted, time: .standard) ?? "not yet")")
+                .foregroundStyle(.primary)
+            if store.errorMessage != nil, !store.departures.isEmpty {
+                Label("Latest update failed", systemImage: "exclamationmark.triangle")
+                    .help(store.errorMessage ?? "")
             }
             if !store.isAwake {
-                Text("· Paused (click to update)")
-            }
-            if store.errorMessage != nil, !store.departures.isEmpty {
-                Image(systemName: "exclamationmark.triangle").help(store.errorMessage ?? "")
+                Text("Paused (click to update)")
             }
         }
         .font(.caption)
