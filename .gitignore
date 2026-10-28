@@ -1,3 +1,4 @@
 .build/
 BusStop.app/
 .DS_Store
+dist/

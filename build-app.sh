@@ -1,13 +1,16 @@
 #!/bin/zsh
-# Builds BusStop.app in this directory. Usage: ./build-app.sh
+# Builds BusStop.app (universal: Apple Silicon + Intel) in this directory. Usage: ./build-app.sh
 # Uses swiftc directly so it works with just the Xcode Command Line Tools.
 set -euo pipefail
 cd "$(dirname "$0")"
 
 mkdir -p .build
-swiftc -O -parse-as-library \
-    -target "$(uname -m)-apple-macosx13.0" \
-    -o .build/BusStop Sources/BusStop/*.swift
+for arch in arm64 x86_64; do
+    swiftc -O -parse-as-library \
+        -target "$arch-apple-macosx13.0" \
+        -o ".build/BusStop-$arch" Sources/BusStop/*.swift
+done
+lipo -create -output .build/BusStop .build/BusStop-arm64 .build/BusStop-x86_64
 
 APP=BusStop.app
 rm -rf "$APP"

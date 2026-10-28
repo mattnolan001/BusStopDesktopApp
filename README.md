@@ -9,18 +9,39 @@ A small macOS menu bar app that shows live departures from a Lothian Buses stop 
 
 The default stop is **Royal Hospital for Children & Young People (Stop IE), south-west bound**. You can switch to any Edinburgh-area stop with **Change Stop…**.
 
-## Requirements
+## Download
 
-- macOS 13 (Ventura) or later
-- Apple's command line developer tools (free; full Xcode is not needed)
+Requires macOS 13 (Ventura) or later. Runs natively on Apple Silicon and Intel Macs.
 
-If you don't already have the developer tools, open Terminal and run:
+1. Download **BusStop-x.y.z.zip** from the [latest release](https://github.com/mattnolan001/BusStopDesktopApp/releases/latest) and double-click it to unzip.
+2. Drag **BusStop.app** into your **Applications** folder. (Run it from Applications, not Downloads, or macOS runs it from a hidden temporary copy.)
+3. Double-click **BusStop** in Applications. A window with departures opens, and a bus icon appears in the menu bar. The app has no Dock icon.
+
+### First launch: "Apple could not verify…"
+
+The first time you open it, macOS shows a warning and won't open the app. This is because the app isn't notarised by Apple (that needs a paid developer account). The full source code is in this repository if you'd like to check it. To allow it, once:
+
+1. Click **Done** on the warning.
+2. Open **System Settings → Privacy & Security** and scroll down to the Security section.
+3. Next to *"BusStop" was blocked to protect your Mac*, click **Open Anyway**, then confirm with your password or Touch ID.
+
+After that it opens normally. Alternatively, in Terminal:
+
+```sh
+xattr -dr com.apple.quarantine /Applications/BusStop.app
+```
+
+### Start automatically at login (optional)
+
+Open **System Settings → General → Login Items** and add **BusStop** under "Open at Login". When started this way it stays quietly in the menu bar without opening a window.
+
+## Build from source
+
+If you'd rather compile it yourself, you need Apple's command line developer tools (free; full Xcode is not needed). If you don't have them, open Terminal and run:
 
 ```sh
 xcode-select --install
 ```
-
-## Install
 
 1. Download the code. In Terminal:
 
@@ -41,11 +62,7 @@ xcode-select --install
 
 3. Drag `BusStop.app` into your **Applications** folder (or run `mv BusStop.app /Applications/`).
 
-4. Double-click **Bus Stop** in Applications or Launchpad. A window with departures opens, and a bus icon appears in the menu bar. The app has no Dock icon.
-
-### Start automatically at login (optional)
-
-Open **System Settings → General → Login Items** and add **Bus Stop** under "Open at Login". When started this way it stays quietly in the menu bar without opening a window.
+4. Double-click **BusStop** in Applications. A self-built app opens without the first-launch warning.
 
 ## Using the app
 
@@ -68,7 +85,7 @@ You can also find a stop on [bustimes.org](https://bustimes.org): the number at 
 ## Troubleshooting
 
 **I can't see the bus icon in the menu bar.**
-On MacBooks with a camera notch, macOS hides menu bar icons that don't fit. Quit a few other menu bar apps, or hold **⌘** and drag icons off the menu bar to make room. On macOS 26, also check **System Settings → Menu Bar** that Bus Stop is allowed. You can always use the app by double-clicking it to open the window.
+On MacBooks with a camera notch, macOS hides menu bar icons that don't fit. Quit a few other menu bar apps, or hold **⌘** and drag icons off the menu bar to make room. On macOS 26, also check **System Settings → Menu Bar** that BusStop is allowed. You can always use the app by double-clicking it to open the window.
 
 **`./build-app.sh: Permission denied`**
 Run `chmod +x build-app.sh` and try again.
@@ -81,7 +98,7 @@ The live data service may be briefly unavailable. Click **Retry** or try again i
 
 ## Uninstall
 
-Quit the app from its menu, delete **Bus Stop** from Applications, and optionally remove its saved stop choice:
+Quit the app from its menu, delete **BusStop** from Applications, and optionally remove its saved stop choice:
 
 ```sh
 defaults delete com.mattnolan001.BusStop
@@ -93,7 +110,9 @@ Departure times come from [bustimes.org](https://bustimes.org), a volunteer-run 
 
 ## For developers
 
-The app is plain SwiftUI/AppKit with no dependencies. `build-app.sh` compiles `Sources/BusStop/*.swift` with `swiftc` and assembles an ad-hoc signed `.app` bundle using `Resources/Info.plist`.
+The app is plain SwiftUI/AppKit with no dependencies. `build-app.sh` compiles `Sources/BusStop/*.swift` with `swiftc` and assembles an ad-hoc signed universal (Apple Silicon + Intel) `.app` bundle using `Resources/Info.plist`.
+
+To publish a new version, commit your changes and run `./release.sh 1.1.0` (with the new version number). It sets the version in `Info.plist`, builds and checks the app, zips it to `dist/`, commits and tags `v1.1.0`, pushes, and creates a GitHub Release with the zip attached. It needs the [GitHub CLI](https://cli.github.com) (`gh`) logged in.
 
 | File | Purpose |
 | --- | --- |
@@ -104,6 +123,8 @@ The app is plain SwiftUI/AppKit with no dependencies. `build-app.sh` compiles `S
 | `Models.swift` | JSON decoding for departures and stops |
 | `DeparturesView.swift` | The departures list (shared by menu and window) |
 | `StopPickerView.swift` | Change Stop search |
+| `build-app.sh` | Builds `BusStop.app` |
+| `release.sh` | Builds and publishes a GitHub Release |
 
 ## License
 
