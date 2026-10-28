@@ -24,10 +24,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let view = DeparturesView(store: store)
                 .padding()
                 .frame(minWidth: 340, minHeight: 240, alignment: .top)
-            mainWindow = makeWindow(title: "Bus Times", content: view, autosave: "MainWindow")
+            let window = makeWindow(title: "Bus Times", content: view, autosave: "MainWindow")
+            // Clicking back into a window left open wakes auto-refresh again.
+            NotificationCenter.default.addObserver(
+                forName: NSWindow.didBecomeKeyNotification, object: window, queue: .main
+            ) { [weak self] _ in
+                MainActor.assumeIsolated { self?.store.wake() }
+            }
+            mainWindow = window
         }
         present(mainWindow)
-        Task { await store.refresh() }
     }
 
     func showStopPicker() {

@@ -10,25 +10,48 @@ final class DeparturesStore: ObservableObject {
     @Published private(set) var allStops: [Stop] = []
     @Published private(set) var atcoCode: String
     @Published private(set) var stopName: String
+    /// Auto-refresh runs only for a while after the user looks at the app.
+    @Published private(set) var isAwake = false
 
     private static let atcoKey = "atcoCode"
     private static let stopNameKey = "stopName"
     // Default: Edinburgh Royal Infirmary, RH for Children & Young People (Stop IE), south-west bound.
     private static let defaultAtco = "6200251020"
     private static let defaultName = "Royal Hospital for Children & Young People (Stop IE) SW"
-    // bustimes.org is a volunteer-run site, so poll gently.
-    private static let refreshInterval: TimeInterval = 60
+    // Polling only happens while awake, which keeps load on volunteer-run bustimes.org low.
+    private static let refreshInterval: TimeInterval = 30
+    private static let awakeDuration: Duration = .seconds(5 * 60)
 
     private let service = BusService()
     private var timer: Timer?
+    private var sleepTask: Task<Void, Never>?
 
     init() {
         atcoCode = UserDefaults.standard.string(forKey: Self.atcoKey) ?? Self.defaultAtco
         stopName = UserDefaults.standard.string(forKey: Self.stopNameKey) ?? Self.defaultName
-        timer = Timer.scheduledTimer(withTimeInterval: Self.refreshInterval, repeats: true) { [weak self] _ in
-            Task { await self?.refresh() }
+    }
+
+    /// Fetch now, then auto-refresh until 5 minutes after the most recent wake.
+    func wake(force: Bool = false) {
+        isAwake = true
+        if timer == nil {
+            timer = Timer.scheduledTimer(withTimeInterval: Self.refreshInterval, repeats: true) { [weak self] _ in
+                Task { await self?.refresh() }
+            }
         }
-        Task { await refresh() }
+        sleepTask?.cancel()
+        sleepTask = Task { [weak self] in
+            try? await Task.sleep(for: Self.awakeDuration)
+            guard !Task.isCancelled else { return }
+            self?.sleep()
+        }
+        Task { await refresh(force: force) }
+    }
+
+    private func sleep() {
+        timer?.invalidate()
+        timer = nil
+        isAwake = false
     }
 
     func select(_ stop: Stop) {
@@ -38,7 +61,7 @@ final class DeparturesStore: ObservableObject {
         stopName = stop.displayName
         departures = []
         lastUpdated = nil
-        Task { await refresh(force: true) }
+        wake(force: true)
     }
 
     func refresh(force: Bool = false) async {

@@ -30,7 +30,7 @@ struct DeparturesView: View {
             VStack(alignment: .leading, spacing: 6) {
                 Label(error, systemImage: "exclamationmark.triangle")
                     .foregroundStyle(.secondary)
-                Button("Retry") { Task { await store.refresh() } }
+                Button("Retry") { store.wake() }
             }
             .padding(.vertical, 4)
         } else if store.departures.isEmpty {
@@ -46,6 +46,9 @@ struct DeparturesView: View {
         HStack {
             if let updated = store.lastUpdated {
                 Text("Updated \(updated.formatted(date: .omitted, time: .shortened))")
+            }
+            if !store.isAwake {
+                Text("· Paused (click to update)")
             }
             if store.errorMessage != nil, !store.departures.isEmpty {
                 Image(systemName: "exclamationmark.triangle").help(store.errorMessage ?? "")

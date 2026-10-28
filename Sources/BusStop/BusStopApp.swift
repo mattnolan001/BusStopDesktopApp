@@ -25,7 +25,7 @@ private struct MenuContent: View {
                 Button("Change Stop…") { appDelegate.showStopPicker() }
                 Spacer()
                 Button {
-                    Task { await store.refresh() }
+                    store.wake()
                 } label: {
                     Image(systemName: "arrow.clockwise")
                 }
@@ -36,6 +36,6 @@ private struct MenuContent: View {
         }
         .padding(12)
         .frame(width: 340)
-        .task { await store.refresh() }
+        .onAppear { store.wake() }
     }
 }
